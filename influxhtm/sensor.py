@@ -12,4 +12,37 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ----------------------------------------------------------------------
 
-from influxhtmclient import InfluxHtmClient
+class Sensor:
+
+  def __init__(self, sensorDef, influxHtmClient):
+    self._name = sensorDef["name"]
+    self._tags = sensorDef["tags"]
+    self._component = self._tags["component"]
+    self._client = influxHtmClient
+    pass
+
+
+  def getTags(self):
+    return self._tags
+
+
+  def getMeasurement(self):
+    return self._name
+
+
+  def getComponent(self):
+    return self._component
+
+
+  def getModel(self):
+    for model in self._client.getHtmModels():
+      if model.getName() == "{} HTM Model".format(self.getName()):
+        return model
+
+
+  def getName(self):
+    return "{0} {1}".format(self.getComponent(), self.getMeasurement())
+
+
+  def __str__(self):
+    return self.getName()

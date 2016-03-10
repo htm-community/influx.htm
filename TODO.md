@@ -59,7 +59,7 @@ htmModel = tempSensor.createModel("model-id")
 
 ```python
 # Returns a list of Sensor instances.
-sensors = client.listSensors()
+sensors = client.getSensors()
 
 # Returns a Sensor instance.
 tempSensor = client.getSensor(measurement="temperature", component="Front+Door")
