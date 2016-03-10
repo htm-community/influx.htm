@@ -68,6 +68,7 @@ tempSensor = client.getSensor(measurement="temperature", component="Front+Door")
 htmModel = tempSensor.getModel()
 ```
 
+Since `HtmSensorModel` isntances should not exist without corresponding `Sensor` instances, you must fetch a `Sensor` to get its accompanying `HtmSensorModel`.
 
 ## Data Storage
 
