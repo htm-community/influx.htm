@@ -75,7 +75,7 @@ class InfluxHtmClient:
     self._client.switch_database(database)
 
 
-  def listSeries(self):
+  def _listSeries(self):
     measurements = self._client.get_list_series()
     # First we need to split out measurements into series.
     series = []
@@ -86,16 +86,79 @@ class InfluxHtmClient:
     return series
 
 
+  def _query(self, measurement, component, **kwargs):
+    toSelect = "value"
+    aggregation = None
+    if "aggregation" in kwargs and kwargs["aggregation"] is not None:
+      aggregation = kwargs["aggregation"]
+      toSelect = "MEAN(value)"
+
+    query = "SELECT {0} FROM {1} WHERE component = '{2}'"\
+      .format(toSelect, measurement, component)
+
+    if "since" in kwargs:
+      since = kwargs["since"]
+      # since might be an integer timestamp or a time string. If it is a time
+      # string, we'll just put single quotes around it to play nice with Influx.
+      if isinstance(since, basestring):
+        since = "'{}'".format(since)
+      query += " AND time > {0}".format(since)
+
+    if aggregation is None:
+      query += " GROUP BY *"
+    else:
+      query += " GROUP BY time({0}) fill(previous)".format(
+        kwargs["aggregation"]
+      )
+
+    query += " ORDER BY time DESC"
+
+    limit = kwargs["limit"]
+    if limit is not None:
+      query += " LIMIT {0}".format(limit)
+
+    if self._verbose:
+      print query
+
+    response = self._client.query(query)
+
+    # Don't process empty responses
+    if len(response) < 1:
+      return []
+
+    data = response.raw
+    # Because of the descending order in the query, we want to reverse the data
+    # so it is actually in ascending order. The descending order was really just
+    # to get the latest data.
+    data["series"][0]["values"] = list(reversed(data["series"][0]["values"]))
+    return data
+
+
+  def createSensor(self, measurement=None, component=None):
+    if measurement is None or component is None:
+      raise ValueError("You must provide both measurement and component when "
+                       "creating a new influxhtm.Sensor object.")
+    return Sensor({
+      "name": measurement,
+      "tags": {
+        "component": component
+      }
+    }, self)
+
+
+  def getInfluxClient(self):
+    return self._client
+
 
   def getSensors(self):
     return [Sensor(s, self)
-            for s in self.listSeries()
+            for s in self._listSeries()
             if not self._seriesIsModel(s["name"])]
 
 
   def getHtmModels(self):
     return [HtmSensorModel(s, self)
-            for s in self.listSeries()
+            for s in self._listSeries()
             if self._seriesIsModel(s["name"])]
 
 
@@ -104,5 +167,3 @@ class InfluxHtmClient:
     for s in sensors:
       if s.getMeasurement() == measurement and s.getComponent() == component:
         return s
-
-

@@ -22,6 +22,22 @@ class Sensor:
     pass
 
 
+  def _writePoints(self, points):
+    payload = []
+    for p in points:
+      payload.append({
+        "tags": {
+          "component": self.getComponent(),
+        },
+        "time": p["time"],
+        "measurement": self.getMeasurement(),
+        "fields": {
+          "value": p["value"]
+        }
+      })
+    self._client.getInfluxClient().write_points(payload)
+
+
   def getTags(self):
     return self._tags
 
@@ -42,6 +58,19 @@ class Sensor:
 
   def getName(self):
     return "{0} {1}".format(self.getComponent(), self.getMeasurement())
+
+
+  def write(self, data):
+    if isinstance(data, list):
+      self._writePoints(data)
+    else:
+      self._writePoints([data])
+
+
+  def getData(self, **kwargs):
+    return self._client._query(
+      self.getMeasurement(), self.getComponent(), **kwargs
+    )
 
 
   def __str__(self):
