@@ -146,6 +146,20 @@ class InfluxHtmClient:
     }, self)
 
 
+  def createHtmModel(self, id, measurement=None, component=None):
+    if measurement is None or component is None:
+      raise ValueError("You must provide both measurement and component when "
+                       "creating a new influxhtm.Sensor object.")
+    return HtmSensorModel({
+      "name": measurement + "_model",
+      "tags": {
+        "id": id,
+        "component": component
+      }
+    }, self)
+
+
+
   def getInfluxClient(self):
     return self._client
 

@@ -50,7 +50,7 @@ class Sensor:
     return self._component
 
 
-  def getModel(self):
+  def getHtmModel(self):
     for model in self._client.getHtmModels():
       if model.getName() == "{} HTM Model".format(self.getName()):
         return model
@@ -70,6 +70,12 @@ class Sensor:
   def getData(self, **kwargs):
     return self._client._query(
       self.getMeasurement(), self.getComponent(), **kwargs
+    )
+
+
+  def createHtmModel(self, id):
+    return self._client.createHtmModel(
+      id, measurement=self.getMeasurement(), component=self.getComponent()
     )
 
 

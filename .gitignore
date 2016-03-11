@@ -6,6 +6,8 @@ lib/
 
 # python
 *.pyc
+*.egg-info/
+dist/
 
 # Idea
 .idea/
