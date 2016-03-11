@@ -78,12 +78,15 @@ class InfluxHtmClient:
   def _listSeries(self):
     measurements = self._client.get_list_series()
     # First we need to split out measurements into series.
-    series = []
+    series = {}
     for measurement in measurements:
       name = measurement["name"]
       for tags in measurement["tags"]:
-        series.append({"name": name, "tags": tags})
-    return series
+        # Only series with the "component" tag are sensors we want.
+        if "component" in tags:
+          series["{} {}".format(tags["component"], name)] \
+            = {"name": name, "tags": tags}
+    return series.values()
 
 
   def _query(self, measurement, component, **kwargs):
