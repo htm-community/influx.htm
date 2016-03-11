@@ -44,7 +44,7 @@ class InfluxHtmClient:
                username=DEFAULT_USER,
                password=DEFAULT_PASS,
                ssl=DEFAULT_SSL,
-               verbose=False
+               verbose=True
                ):
 
     self._database = database
@@ -88,6 +88,8 @@ class InfluxHtmClient:
 
   def _query(self, measurement, component, **kwargs):
     toSelect = "value"
+    if "select" in kwargs:
+      toSelect = kwargs["select"]
     aggregation = None
     if "aggregation" in kwargs and kwargs["aggregation"] is not None:
       aggregation = kwargs["aggregation"]
@@ -96,13 +98,21 @@ class InfluxHtmClient:
     query = "SELECT {0} FROM {1} WHERE component = '{2}'"\
       .format(toSelect, measurement, component)
 
-    if "since" in kwargs:
+    if "since" in kwargs and kwargs["since"] is not None:
       since = kwargs["since"]
       # since might be an integer timestamp or a time string. If it is a time
       # string, we'll just put single quotes around it to play nice with Influx.
       if isinstance(since, basestring):
         since = "'{}'".format(since)
       query += " AND time > {0}".format(since)
+
+    if "until" in kwargs and kwargs["until"] is not None:
+      until = kwargs["until"]
+      # until might be an integer timestamp or a time string. If it is a time
+      # string, we'll just put single quotes around it to play nice with Influx.
+      if isinstance(until, basestring):
+        until = "'{}'".format(until)
+      query += " AND time < {0}".format(until)
 
     if aggregation is None:
       query += " GROUP BY *"
@@ -124,7 +134,7 @@ class InfluxHtmClient:
 
     # Don't process empty responses
     if len(response) < 1:
-      return []
+      return None
 
     data = response.raw
     # Because of the descending order in the query, we want to reverse the data

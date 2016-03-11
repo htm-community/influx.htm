@@ -19,7 +19,6 @@ class HtmSensorModel:
     self._tags = modelDef["tags"]
     self._component = self._tags["component"]
     self._client = influxHtmClient
-    pass
 
 
   def getTags(self):
@@ -52,6 +51,12 @@ class HtmSensorModel:
     }]
     self._client.getInfluxClient().write_points(payload)
 
+
+  def getModelResults(self, since=None, until=None, limit=None):
+    return self._client._query(
+      self._name, self.getComponent(),
+      select="*", since=since, until=until, limit=limit
+    )
 
 
   def __str__(self):
