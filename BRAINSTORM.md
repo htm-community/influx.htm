@@ -1,5 +1,6 @@
 * warning: work in progress *
 
+> This be where I brainstorm!
 
 # Idea
 
@@ -21,19 +22,6 @@ This library aims to be a stream modeller using NuPIC as an HTM implementation a
 - Standards for easy data aggregation
 - Tools to create retention policies and continuous queries at different aggregation periods for HTM data input feeds
 - Representations of HTM models know where their were sourced
-
-# TODO
-
-1. Create an extension of the `InfluxDBClient` class in the `influxdb==2.12.0` python library.
-1. Create a `Sensor` class to represent a `measurement` with a `tag="component"`.
-1. Create a `HTMSensorModel` class to represent the HTM results while processing a `Sensor`.
-
-# Object Model
-
-`Sensor`: An object in spacetime emitting data at any interval. Static structure.
-`HtmSensorModel`: Attached to a `Sensor` and has many `HtmModelResults` objects order by time.
-`HtmModelResults`: Contains all data in an [OPF](https://github.com/numenta/nupic/tree/master/src/nupic/frameworks/opf) model result. One for each input row. 
-
 
 # Example Usage
 
