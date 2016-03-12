@@ -150,6 +150,11 @@ class Sensor:
     )
 
 
+  def deleteHtmModels(self):
+    for htmModel in self._client.getHtmModels():
+      htmModel.delete()
+
+
   def getEarliestTimestamp(self):
     measurement = self.getMeasurement()
     component = self.getComponent()

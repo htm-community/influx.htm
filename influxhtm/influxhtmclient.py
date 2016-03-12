@@ -13,6 +13,9 @@
 # ----------------------------------------------------------------------
 
 import os
+from datetime import datetime
+import time
+
 from influxdb import InfluxDBClient
 
 from sensor import Sensor
@@ -29,12 +32,26 @@ DEFAULT_SSL = "INFLUX_SSL" in os.environ \
               and os.environ["INFLUX_SSL"].lower() != "false"
 
 
+def normalizeQueryTime(timeInput):
+  output = timeInput
+  # until might be an integer timestamp, a datetime object, or a time string.
+  # If it is a time string, we'll just put single quotes around it to play nice
+  # with Influx. If it is a datetime object, we convert to a 19-digit timestamp.
+  if isinstance(timeInput, basestring):
+    output = "'{}'".format(timeInput)
+  elif isinstance(timeInput, datetime):
+    output = int(time.mktime(timeInput.timetuple())) * pow(10, 9)
+  return output
+
+
 class InfluxHtmClient:
 
 
   @staticmethod
-  def _seriesIsModel(name):
-    return name.endswith("_model") or name.endswith("_inference")
+  def _seriesIsModel(series):
+    name = series["name"]
+    return "id" in series["tags"] \
+           and (name.endswith("_model") or name.endswith("_inference"))
 
 
   def __init__(self,
@@ -102,19 +119,11 @@ class InfluxHtmClient:
       .format(toSelect, measurement, component)
 
     if "since" in kwargs and kwargs["since"] is not None:
-      since = kwargs["since"]
-      # since might be an integer timestamp or a time string. If it is a time
-      # string, we'll just put single quotes around it to play nice with Influx.
-      if isinstance(since, basestring):
-        since = "'{}'".format(since)
+      since = normalizeQueryTime(kwargs["since"])
       query += " AND time > {0}".format(since)
 
     if "until" in kwargs and kwargs["until"] is not None:
-      until = kwargs["until"]
-      # until might be an integer timestamp or a time string. If it is a time
-      # string, we'll just put single quotes around it to play nice with Influx.
-      if isinstance(until, basestring):
-        until = "'{}'".format(until)
+      until = normalizeQueryTime(kwargs["until"])
       query += " AND time < {0}".format(until)
 
     if aggregation is None:
@@ -126,8 +135,8 @@ class InfluxHtmClient:
 
     query += " ORDER BY time DESC"
 
-    limit = kwargs["limit"]
-    if limit is not None:
+    if "limit" in kwargs and kwargs["limit"] is not None:
+      limit = kwargs["limit"]
       query += " LIMIT {0}".format(limit)
 
     if self._verbose:
@@ -171,6 +180,11 @@ class InfluxHtmClient:
       }
     }, self)
 
+  def dropMeasurement(self, measurement):
+    query = "DROP MEASUREMENT {}".format(measurement)
+    if self._verbose:
+      print query
+    self._client.query(query)
 
 
   def getInfluxClient(self):
@@ -180,13 +194,13 @@ class InfluxHtmClient:
   def getSensors(self):
     return [Sensor(s, self)
             for s in self._listSeries()
-            if not self._seriesIsModel(s["name"])]
+            if not self._seriesIsModel(s)]
 
 
   def getHtmModels(self):
     return [HtmSensorModel(s, self)
             for s in self._listSeries()
-            if self._seriesIsModel(s["name"])]
+            if self._seriesIsModel(s)]
 
 
   def getSensor(self, measurement=None, component=None):

@@ -18,7 +18,12 @@ class HtmSensorModel:
     self._name = modelDef["name"]
     self._tags = modelDef["tags"]
     self._component = self._tags["component"]
+    self._id = self._tags["id"]
     self._client = influxHtmClient
+
+
+  def getId(self):
+    return self._id
 
 
   def getTags(self):
@@ -41,6 +46,7 @@ class HtmSensorModel:
     payload = [{
       "time": time,
       "tags": {
+        "id": self.getId(),
         "component": self.getComponent()
       },
       "measurement": self.getMeasurement() + "_model",
@@ -57,6 +63,23 @@ class HtmSensorModel:
       self._name, self.getComponent(),
       select="*", since=since, until=until, limit=limit
     )
+
+
+  def delete(self):
+    self._client.dropMeasurement(self._name)
+
+
+  def processData(self, processorFn, **kwargs):
+    sensor = self._client.getSensor(
+      measurement=self.getMeasurement(), component=self.getComponent()
+    )
+    data = sensor.getData(**kwargs)
+    series = data["series"]
+    values = series[0]["values"]
+    for point in values:
+      modelResult = processorFn(point)
+      self.writeResult(point[0], modelResult)
+
 
 
   def __str__(self):
