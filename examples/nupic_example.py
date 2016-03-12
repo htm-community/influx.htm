@@ -69,7 +69,7 @@ def runModel(startProcessingAt, stopProcessingAt, aggregation, modelParamsPath):
     htmProcessor,
     since=startProcessingAt,
     until=stopProcessingAt,
-    aggregate=aggregation
+    aggregation=aggregation
   )
 
 if __name__ == "__main__":
