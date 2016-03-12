@@ -20,7 +20,6 @@ I want to enable easier experimentation with HTM on live data streams. Almost al
 1. Allow HTM users a platform for experimentation with different model params over and over against the same data sensors
 1. Provide an API for the merge of raw sensor data (aggregated or not) with HTM results for easy plotting
 
-
 ## Usage
 
 ### The Client
@@ -96,3 +95,7 @@ data = sensor.getCombinedSensorData(since=oneWeekAgo, aggregation="10m")
 ```
 
 If there an HTM model exists within `influxhtm` for the given sensor, the `data` object will contain columns and values for anomalies and predictions.
+
+## A NuPIC Example
+
+See an example script using NuPIC [here](examples/nupic_example.py).
