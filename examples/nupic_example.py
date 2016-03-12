@@ -19,7 +19,7 @@ def createModel(paramPath):
   return model
 
 
-def main():
+def runModel(startProcessingAt, stopProcessingAt, aggregation, modelParamsPath):
   # Create the influxhtm client and get a sensor.
   client = InfluxHtmClient("smartthings_htm_bridge")
   fridge = client.getSensor(measurement="power", component="Mini+Fridge")
@@ -28,7 +28,7 @@ def main():
   # And create a new storage space for this model I'm creating.
   modelStore = fridge.createHtmModel("mtaylor_local_mini_fridge")
   # Create a real HTM model object through the NuPIC OPF.
-  htmModel = createModel("./model_params/anomaly_params.json")
+  htmModel = createModel(modelParamsPath)
 
   shifter = InferenceShifter()
   anomalyLikelihood = anomaly_likelihood.AnomalyLikelihood()
@@ -67,10 +67,16 @@ def main():
 
   modelStore.processData(
     htmProcessor,
-    since=datetime(2016, 2, 16),
-    until=datetime(2016, 2, 26),
-    aggregate="10m"
+    since=startProcessingAt,
+    until=stopProcessingAt,
+    aggregate=aggregation
   )
 
 if __name__ == "__main__":
-  main()
+  # Change the input parameters here
+  startProcessingAt = datetime(2016, 2, 15)
+  stopProcessingAt = datetime(2016, 3, 2)
+  aggregation = "15m"
+  modelParamsPath = "./model_params/anomaly_params.json"
+  # run the HTM model over the data stream
+  runModel(startProcessingAt, stopProcessingAt, aggregation, modelParamsPath)
