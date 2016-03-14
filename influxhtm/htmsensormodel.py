@@ -78,7 +78,8 @@ class HtmSensorModel:
     values = series[0]["values"]
     for point in values:
       modelResult = processorFn(point)
-      self.writeResult(point[0], modelResult)
+      if modelResult is not None:
+        self.writeResult(point[0], modelResult)
 
 
 

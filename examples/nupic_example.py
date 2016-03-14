@@ -58,6 +58,9 @@ def runModel(startProcessingAt, stopProcessingAt, aggregation, modelParamsPath):
     # Prepare a result object for writing into InfluxDB.
     inferences = result.inferences
     anomalyScore = inferences["anomalyScore"]
+    # This breaks out when point has not data.
+    if value is None or anomalyScore is None:
+      return None
     likelihood = anomalyLikelihood.anomalyProbability(
       value, anomalyScore, timestamp)
     return {
@@ -74,8 +77,8 @@ def runModel(startProcessingAt, stopProcessingAt, aggregation, modelParamsPath):
 
 if __name__ == "__main__":
   # Change the input parameters here
-  startProcessingAt = datetime(2016, 2, 15)
-  stopProcessingAt = datetime(2016, 3, 2)
+  startProcessingAt = datetime(2016, 2, 16)
+  stopProcessingAt = datetime(2016, 3, 15)
   aggregation = "15m"
   modelParamsPath = "./model_params/anomaly_params.json"
   # run the HTM model over the data stream
