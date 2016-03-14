@@ -45,7 +45,7 @@ class Sensor:
       inferenceData = {
         "series": [{
           "values": [],
-          "columns": ["time", "anomalyScore", "anomalyLikelihood"]
+          "columns": ["time", "anomalyLikelihood", "anomalyScore"]
         }]
       }
     sensorSeries = sensorData["series"][0]
